@@ -1,0 +1,193 @@
+/* Layout */
+.layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+
+.layout__header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.layout__title {
+  margin: 0;
+  font-size: 2rem;
+  color: #f0f0f0;
+}
+
+.layout__subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.layout__body {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.layout__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.layout__sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Tab panel */
+.tab-panel {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #2a2a4a;
+}
+
+.tab-panel__tab {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  background: transparent;
+  color: #888;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab-panel__tab:hover {
+  color: #ccc;
+}
+
+.tab-panel__tab--active {
+  color: #f0f0f0;
+  border-bottom-color: #6366f1;
+}
+
+.tab-panel__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* File upload */
+.file-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.file-upload-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.file-upload-filename {
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+/* Settings panel */
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settings-panel h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.settings-field label {
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.settings-field .helper-text {
+  color: #888;
+  font-weight: 400;
+}
+
+.settings-field input[type="number"] {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.settings-field input[type="number"]:focus {
+  outline: 2px solid #6366f1;
+  border-color: transparent;
+}
+
+.field-error {
+  color: #f87171;
+  font-size: 0.8rem;
+}
+
+/* Playback controls */
+.playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.playback-controls button {
+  padding: 0.5rem 1.5rem;
+  border: 1px solid #6366f1;
+  border-radius: 6px;
+  background: #6366f1;
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.playback-controls button:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.playback-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.playback-message {
+  color: #888;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .layout__body {
+    flex-direction: column;
+  }
+
+  .layout__sidebar {
+    width: 100%;
+  }
+}
