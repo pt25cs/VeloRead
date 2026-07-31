@@ -1,30 +1,6 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useAppContext } from "../context/AppContext";
 import { buildParagraphs } from "../modules/tracker/document-tracker";
-
-const containerStyle: React.CSSProperties = {
-  overflowY: "auto",
-  height: "400px",
-  padding: "1rem",
-  border: "1px solid #ccc",
-  borderRadius: "4px",
-  lineHeight: 1.8,
-};
-
-const paragraphStyle: React.CSSProperties = {
-  marginBottom: "1rem",
-};
-
-const wordStyle: React.CSSProperties = {
-  cursor: "pointer",
-  padding: "2px 4px",
-  borderRadius: "2px",
-};
-
-const highlightStyle: React.CSSProperties = {
-  ...wordStyle,
-  backgroundColor: "#fde047",
-};
 
 export function DocumentTracker() {
   const { state, dispatch } = useAppContext();
@@ -45,20 +21,24 @@ export function DocumentTracker() {
   }, [state.positionIndex]);
 
   if (!state.wordList || !paragraphs) {
-    return <div style={containerStyle}>No document loaded</div>;
+    return <div className="document-tracker document-tracker--empty" />;
   }
 
   return (
-    <div style={containerStyle}>
+    <div className="document-tracker">
       {paragraphs.map((paragraph, pIdx) => (
-        <p key={pIdx} style={paragraphStyle}>
+        <p key={pIdx} className="document-tracker__paragraph">
           {paragraph.map((entry) => {
             const isHighlighted = entry.globalIndex === state.positionIndex;
             return (
               <span
                 key={entry.globalIndex}
                 ref={isHighlighted ? highlightedRef : undefined}
-                style={isHighlighted ? highlightStyle : wordStyle}
+                className={
+                  isHighlighted
+                    ? "document-tracker__word document-tracker__word--highlighted"
+                    : "document-tracker__word"
+                }
                 onClick={() =>
                   dispatch({ type: "SET_POSITION", index: entry.globalIndex })
                 }

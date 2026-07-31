@@ -78,8 +78,6 @@ export function SettingsPanel() {
 
   return (
     <div className="settings-panel">
-      <h2>Settings</h2>
-
       <div className="settings-field">
         <label htmlFor="display-rate-input">
           Display Rate (WPM)

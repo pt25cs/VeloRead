@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import App from "../../App";
 import * as parserModule from "../../modules/parser/parser";
 import { parseText } from "../../modules/parser/parser";
+import { AppProvider, useAppContext } from "../../context/AppContext";
 
 // jsdom does not implement scrollIntoView
 beforeEach(() => {
@@ -54,8 +55,9 @@ describe("Integration: Full upload → parse → display → complete workflow",
 
     await uploadFileWithContent("Hello world foo bar");
 
-    // After load, display should show the first word
-    expect(screen.getByText("Hello")).toBeInTheDocument();
+    // After load, display should show the first word in the reading display
+    const displayElement = document.querySelector(".velo-display__words");
+    expect(displayElement).toHaveTextContent("Hello");
 
     // Click Start
     const startBtn = screen.getByRole("button", { name: "Start" });
@@ -91,27 +93,20 @@ describe("Integration: Click-to-seek in Document_Tracker updates display positio
 
     await uploadFileWithContent("alpha beta gamma delta epsilon");
 
-    // Switch to Tracker tab
-    const trackerTab = screen.getByRole("tab", { name: "Tracker" });
-    act(() => {
-      fireEvent.click(trackerTab);
-    });
-
+    // In the new single-column layout, both display and tracker are always visible.
     // Click on "gamma" in the document tracker
-    const gammaWord = screen.getByText("gamma");
+    const trackerWords = screen.getAllByText("gamma");
+    // The tracker word has the document-tracker__word class
+    const gammaInTracker = trackerWords.find(el => el.classList.contains("document-tracker__word"));
+    expect(gammaInTracker).toBeDefined();
     act(() => {
-      fireEvent.click(gammaWord);
-    });
-
-    // Switch back to Display tab to verify the word displayed
-    const displayTab = screen.getByRole("tab", { name: "Display" });
-    act(() => {
-      fireEvent.click(displayTab);
+      fireEvent.click(gammaInTracker!);
     });
 
     // After SET_POSITION, state is "paused" with positionIndex at gamma (index 2)
-    // The display should show "gamma"
-    expect(screen.getByText("gamma")).toBeInTheDocument();
+    // The display should show "gamma" in the reading display
+    const displayWord = document.querySelector(".velo-display__words");
+    expect(displayWord).toHaveTextContent("gamma");
   });
 });
 
@@ -144,8 +139,9 @@ describe("Integration: Rate change mid-run does not reset position", () => {
       vi.advanceTimersByTime(240);
     });
 
-    // Position should be at index 2 ("three")
-    expect(screen.getByText("three")).toBeInTheDocument();
+    // Position should be at index 2 ("three") — shown in both display and tracker
+    const displayElement = document.querySelector(".velo-display__words");
+    expect(displayElement).toHaveTextContent("three");
 
     // Change the display rate via settings input
     const rateInput = screen.getByLabelText(/Display Rate/);
@@ -155,7 +151,7 @@ describe("Integration: Rate change mid-run does not reset position", () => {
     });
 
     // Position should NOT have reset — "three" should still be displayed
-    expect(screen.getByText("three")).toBeInTheDocument();
+    expect(displayElement).toHaveTextContent("three");
   });
 });
 
@@ -201,41 +197,76 @@ describe("Integration: Auto-pause at paragraph boundary then resume", () => {
       fireEvent.click(resumeBtn);
     });
 
-    // After resume, sentinel is skipped, and display should show "word3"
-    expect(screen.getByText("word3")).toBeInTheDocument();
+    // After resume, sentinel is skipped, and display should show "word3" in reading display
+    const displayElement = document.querySelector(".velo-display__words");
+    expect(displayElement).toHaveTextContent("word3");
   });
 });
 
-describe("Integration: Tab switching between display and tracker", () => {
-  it("switches between Display and Tracker tabs correctly", () => {
+describe("Integration: Single-column layout structure", () => {
+  /**
+   * Validates: Requirements 1.1, 1.2, 1.3, 8.1
+   */
+  it("renders all sections in the correct vertical order without tabs", () => {
     render(<App />);
 
-    // Display tab should be active by default
-    const displayTab = screen.getByRole("tab", { name: "Display" });
-    const trackerTab = screen.getByRole("tab", { name: "Tracker" });
+    // No tab elements should exist
+    expect(screen.queryByRole("tab")).toBeNull();
+    expect(screen.queryByRole("tablist")).toBeNull();
+    expect(screen.queryByRole("tabpanel")).toBeNull();
 
-    expect(displayTab).toHaveAttribute("aria-selected", "true");
-    expect(trackerTab).toHaveAttribute("aria-selected", "false");
+    // All sections should be visible simultaneously
+    const adPlaceholders = document.querySelectorAll(".ad-placeholder");
+    expect(adPlaceholders).toHaveLength(2);
+    expect(adPlaceholders[0]).toHaveAttribute("data-slot", "top");
+    expect(adPlaceholders[1]).toHaveAttribute("data-slot", "bottom");
 
-    // The display tabpanel should be visible
-    expect(screen.getByRole("tabpanel")).toBeInTheDocument();
+    // Reading display, control bar, and document tracker should all be present
+    expect(document.querySelector(".reading-display")).toBeInTheDocument();
+    expect(document.querySelector(".control-bar")).toBeInTheDocument();
+    expect(document.querySelector(".document-tracker")).toBeInTheDocument();
 
-    // Click Tracker tab
-    fireEvent.click(trackerTab);
+    // Verify correct DOM order within app-shell__content
+    const content = document.querySelector(".app-shell__content");
+    const children = Array.from(content!.children);
+    expect(children[0]).toHaveClass("ad-placeholder");
+    expect(children[1]).toHaveClass("reading-display");
+    expect(children[2]).toHaveClass("control-bar");
+    expect(children[3]).toHaveClass("document-tracker");
+    expect(children[4]).toHaveClass("ad-placeholder");
+  });
 
-    expect(trackerTab).toHaveAttribute("aria-selected", "true");
-    expect(displayTab).toHaveAttribute("aria-selected", "false");
+  /**
+   * Validates: Requirement 8.2
+   */
+  it("does not render any sidebar (aside) element", () => {
+    render(<App />);
 
-    // Document Tracker content should be visible
-    const trackerPanel = screen.getByRole("tabpanel");
-    expect(trackerPanel).toHaveAttribute("id", "tabpanel-tracker");
+    const asideElements = document.querySelectorAll("aside");
+    expect(asideElements).toHaveLength(0);
+  });
 
-    // Click Display tab back
-    fireEvent.click(displayTab);
+  /**
+   * Validates: Requirements 8.1, 8.2, 8.3
+   */
+  it("AppContext does not expose activeTab or setActiveTab", () => {
+    // Verify at runtime that the context value doesn't contain tab-related properties
+    let contextValue: Record<string, unknown> | undefined;
 
-    expect(displayTab).toHaveAttribute("aria-selected", "true");
-    // VeloRunDisplay should be visible again — check tabpanel id
-    const displayPanel = screen.getByRole("tabpanel");
-    expect(displayPanel).toHaveAttribute("id", "tabpanel-display");
+    function ContextInspector() {
+      const ctx = useAppContext();
+      contextValue = ctx as unknown as Record<string, unknown>;
+      return null;
+    }
+
+    render(
+      <AppProvider>
+        <ContextInspector />
+      </AppProvider>
+    );
+
+    expect(contextValue).toBeDefined();
+    expect(contextValue).not.toHaveProperty("activeTab");
+    expect(contextValue).not.toHaveProperty("setActiveTab");
   });
 });

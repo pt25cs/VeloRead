@@ -45,19 +45,8 @@ export function VeloRunDisplay() {
 
   return (
     <div
-      className="velo-display__container"
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "200px",
-        backgroundColor: "#1a1a2e",
-        borderRadius: "12px",
-        padding: "2rem",
-        border: "1px solid #2a2a4a",
-        fontSize: `${state.config.fontSize}pt`,
-        color: "#e0e0e0",
-      }}
+      className="reading-display"
+      style={{ fontSize: `${state.config.fontSize}pt` }}
     >
       {renderContent()}
     </div>

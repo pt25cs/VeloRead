@@ -11,8 +11,6 @@ export interface AppContextValue {
   dispatch: React.Dispatch<VeloRunAction>;
   error: string | null;
   setError: (error: string | null) => void;
-  activeTab: "display" | "tracker";
-  setActiveTab: (tab: "display" | "tracker") => void;
 }
 
 const AppContext = createContext<AppContextValue | undefined>(undefined);
@@ -20,15 +18,12 @@ const AppContext = createContext<AppContextValue | undefined>(undefined);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(veloRunReducer, INITIAL_STATE);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"display" | "tracker">("display");
 
   const value: AppContextValue = {
     state,
     dispatch,
     error,
     setError,
-    activeTab,
-    setActiveTab,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
